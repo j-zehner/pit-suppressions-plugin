@@ -26,7 +26,6 @@ mvn install:install-file -Dfile=PATH_TO_JAR\pit-suppression-plugin-0.1.0.jar -Dg
 2. Add the plugin as a dependency inside the PIT plugin section in your `pom.xml`
 
 ```xml
-
 <dependency>
     <groupId>edu.hm.hafner</groupId>
     <artifactId>pit-suppression-plugin</artifactId>
@@ -37,7 +36,6 @@ mvn install:install-file -Dfile=PATH_TO_JAR\pit-suppression-plugin-0.1.0.jar -Dg
 3. To use the CSV filter activate the filter feature and specify the path to your CSV file
 
 ```xml
-
 <configuration>
     <features>+FCSV(csvFile[src/main/resources/exclusions.csv])</features>
 </configuration>
@@ -76,53 +74,30 @@ If multiple fields are provided, **all conditions must be true** for a mutation 
 - PIT plugin
 - Feature with path to CSV file, to use CSV filter
 - Plugin dependency
-- Test framework (JUnit in this example)
 
 ```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>your.groupId</groupId>
-    <artifactId>your-artifactId</artifactId>
-    <version>1.0.0</version>
-    <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-    <dependencies>
+<properties>
+  <maven.compiler.source>21</maven.compiler.source>
+  <maven.compiler.target>21</maven.compiler.target>
+  <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+</properties>
+<build>
+  <plugins>
+    <plugin>
+      <groupId>org.pitest</groupId>
+      <artifactId>pitest-maven</artifactId>
+      <version>1.20.2</version>
+      <configuration>
+        <features>+FCSV(csvFile[src/main/resources/exclusions.csv])</features>
+      </configuration>
+      <dependencies>
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>5.10.0</version>
-            <scope>test</scope>
+          <groupId>edu.hm.hafner</groupId>
+          <artifactId>pit-suppression-plugin</artifactId>//todo
+          <version>0.1.0</version>
         </dependency>
-    </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.pitest</groupId>
-                <artifactId>pitest-maven</artifactId>
-                <version>1.20.2</version>
-                <configuration>
-                    <features>+FCSV(csvFile[src/main/resources/exclusions.csv])</features>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.pitest</groupId>
-                        <artifactId>pitest-junit5-plugin</artifactId>
-                        <version>1.2.2</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>edu.hm.hafner</groupId>
-                        <artifactId>pit-suppression-plugin</artifactId>//todo
-                        <version>0.1.0</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-        </plugins>
-    </build>
-</project>
+      </dependencies>
+    </plugin>
+  </plugins>
+</build>
 ```

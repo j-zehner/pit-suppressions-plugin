@@ -40,7 +40,8 @@ public class CsvExclusionFilterFactory implements MutationInterceptorFactory {
                 .orElse(null);
 
         if (csvPath == null || csvPath.isBlank()) {
-            throw new IllegalStateException("Path to CSV file is missing or empty");
+            throw new IllegalStateException("Missing or empty feature parameter \"csvFile\". Please provide the path "
+                    + "to a CSV file, e.g. +FCSV(csvFile[src\\main\\resources\\exclusions.csv]).");
         }
         return new CsvExclusionFilter(getCsvExclusionEntries(csvPath));
     }
@@ -76,14 +77,16 @@ public class CsvExclusionFilterFactory implements MutationInterceptorFactory {
                     }
                 }
                 else {
-                    LOGGER.log(Level.WARNING, "Line should contain four fields (className, mutator (optional), startLine (optional), endLine (optional)). Skipping invalid line: ", lineNumber);
+                    LOGGER.log(Level.WARNING, "Line should contain four fields (className, mutator (optional), "
+                            + "startLine (optional), endLine (optional)). Skipping invalid line: ", lineNumber);
                 }
                 line = br.readLine();
             }
             return entries;
         }
         catch (IOException e) {
-            throw new IllegalStateException("Failed to read CSV file. Please verify that the path is correct and the file exists: " + csvPath, e);
+            throw new IllegalStateException("Failed to read CSV file. Please verify that the path is correct and the "
+                    + "file exists: " + csvPath, e);
         }
     }
 
