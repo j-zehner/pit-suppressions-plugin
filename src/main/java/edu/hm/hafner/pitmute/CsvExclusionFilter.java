@@ -1,4 +1,4 @@
-package edu.hm.hafner.pit.suppress;
+package edu.hm.hafner.pitmute;
 
 import org.pitest.bytecode.analysis.ClassTree;
 import org.pitest.mutationtest.build.InterceptorType;

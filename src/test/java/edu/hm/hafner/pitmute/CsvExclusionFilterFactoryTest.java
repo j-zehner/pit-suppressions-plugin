@@ -1,4 +1,4 @@
-package edu.hm.hafner.pit.suppress;
+package edu.hm.hafner.pitmute;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

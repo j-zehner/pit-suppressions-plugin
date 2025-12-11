@@ -1,4 +1,4 @@
-package edu.hm.hafner.pit.suppress;
+package edu.hm.hafner.pitmute;
 
 import org.pitest.mutationtest.build.InterceptorParameters;
 import org.pitest.mutationtest.build.MutationInterceptor;
