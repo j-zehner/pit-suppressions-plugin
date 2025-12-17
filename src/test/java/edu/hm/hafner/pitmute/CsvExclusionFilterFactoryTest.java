@@ -87,6 +87,12 @@ class CsvExclusionFilterFactoryTest {
     }
 
     @Test
+    void shouldNotAddEntriesForEmptyLinesAndComments() throws URISyntaxException {
+        List<CsvExclusionEntry> entries = getEntriesFromFile("ignoredLines.csv");
+        assertThat(entries).isEmpty();
+    }
+
+    @Test
     void shouldNotAddEntriesWhenExclusionsAreInvalid() throws URISyntaxException {
         List<CsvExclusionEntry> entries = getEntriesFromFile("invalidExclusions.csv");
         assertThat(entries).isEmpty();

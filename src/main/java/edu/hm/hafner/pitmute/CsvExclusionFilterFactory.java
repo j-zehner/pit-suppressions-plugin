@@ -54,6 +54,10 @@ public class CsvExclusionFilterFactory implements MutationInterceptorFactory {
             int lineNumber = 0;
 
             for (String line : lines) {
+                if (line.isBlank() || line.trim().startsWith("#")) {
+                    continue;
+                }
+
                 String[] fields = line.split(CSV_SEPARATOR, -1);
 
                 lineNumber++;
