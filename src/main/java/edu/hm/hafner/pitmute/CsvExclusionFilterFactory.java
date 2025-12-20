@@ -66,9 +66,13 @@ public class CsvExclusionFilterFactory implements MutationInterceptorFactory {
                 }
 
                 String[] fields = line.split(CSV_SEPARATOR, -1);
-                if (fields.length < MIN_FIELDS) {
-                    fields = Arrays.copyOf(fields, MIN_FIELDS);
+                if (fields.length > MIN_FIELDS) {
+                    logger.log(Level.WARNING, "Skipping invalid line {0}: it contains too many fields. "
+                            + "A line may contain a maximum of four fields (className, mutator (optional), "
+                            + "startLine (optional), endLine (optional)).", lineNumber);
+                    continue;
                 }
+                fields = Arrays.copyOf(fields, MIN_FIELDS);
 
                 lineNumber++;
                 Optional<String> classNameOptional = normalize(fields[0]);

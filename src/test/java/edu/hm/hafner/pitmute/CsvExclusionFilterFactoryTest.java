@@ -130,6 +130,17 @@ class CsvExclusionFilterFactoryTest {
     }
 
     @Test
+    void shouldAddEntriesWithTooManyFieldsCorrectly() throws URISyntaxException {
+        Logger mockLogger = mock(Logger.class);
+        CsvExclusionFilterFactory.setLogger(mockLogger);
+
+        List<CsvExclusionEntry> entries = getEntriesFromFile("exclusionsWithTooManyFields.csv");
+        assertThat(entries).isEmpty();
+
+        verify(mockLogger, times(3)).log(eq(Level.WARNING), contains("maximum of four fields"), anyInt());
+    }
+
+    @Test
     void shouldTestProvidesFeature() {
         Feature feature = factory.provides();
         assertThat(feature.name()).isEqualToIgnoringCase("FCSV");
