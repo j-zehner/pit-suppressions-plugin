@@ -36,6 +36,13 @@ All source code is licensed under the MIT license. Contributions to this library
 </configuration>
 ```
 
+Optionally, add `allowMissingFile[true]` to suppress errors when the CSV file is not found and receive an info log instead
+```xml
+<configuration>
+    <features>+FCSV(csvFile[src/main/resources/exclusions.csv] allowMissingFile[true])</features>
+</configuration>
+```
+
 3. Create a CSV file with the following format
 
 ```
@@ -73,6 +80,7 @@ mvn install
 
 - PIT plugin
 - Feature with path to CSV file, to use CSV filter
+- Optionally, add `allowMissingFile[true]` to suppress errors when the CSV file is not found
 - Plugin dependency
 
 ```xml

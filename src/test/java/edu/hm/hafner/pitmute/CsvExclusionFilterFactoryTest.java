@@ -11,6 +11,7 @@ import org.pitest.plugin.FeatureSetting;
 
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -47,6 +48,55 @@ class CsvExclusionFilterFactoryTest {
 
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> factory.createInterceptor(params))
                 .withMessageContaining("Failed to read CSV file");
+    }
+
+    @ParameterizedTest(name = "{index} => allowMissingFile: {0}")
+    @ValueSource(strings = {"false", " ", "invalidBoolean"})
+    void shouldThrowExceptionWhenFileIsNotFoundAndAllowMissingFileIsFalse(final String allowMissingFile) {
+        InterceptorParameters params = mock(InterceptorParameters.class);
+        FeatureSetting settings = mock(FeatureSetting.class);
+
+        when(settings.getString("csvFile")).thenReturn(Optional.of("src/test/resources/notExistingFile.csv"));
+        when(settings.getString("allowMissingFile")).thenReturn(Optional.of(allowMissingFile));
+        when(params.settings()).thenReturn(Optional.of(settings));
+
+        assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> factory.createInterceptor(params))
+                .withMessageContaining("Failed to read CSV file");
+    }
+
+    @Test
+    void shouldLogInfoWhenFileIsNotFoundAndAllowMissingFileIsTrue() {
+        Logger mockLogger = mock(Logger.class);
+        factory = new CsvExclusionFilterFactory(mockLogger);
+        InterceptorParameters params = mock(InterceptorParameters.class);
+        FeatureSetting settings = mock(FeatureSetting.class);
+
+        when(settings.getString("csvFile")).thenReturn(Optional.of("src/test/resources/notExistingFile.csv"));
+        when(settings.getString("allowMissingFile")).thenReturn(Optional.of("true"));
+        when(params.settings()).thenReturn(Optional.of(settings));
+
+        MutationInterceptor mutationInterceptor = factory.createInterceptor(params);
+
+        verify(mockLogger, times(1)).log(eq(Level.INFO), contains("Mutation exclusion via CSV is enabled"), any(NoSuchFileException.class));
+        assertThat(mutationInterceptor).isInstanceOf(CsvExclusionFilter.class);
+    }
+
+    @ParameterizedTest(name = "{index} => allowMissingFile: {0}")
+    @ValueSource(strings = {"true", "false"})
+    void shouldLogNothingIfValidFileIsFoundRegardlessOfAllowMissingFileParameter(final String allowMissingFile) {
+        Logger mockLogger = mock(Logger.class);
+        factory = new CsvExclusionFilterFactory(mockLogger);
+        InterceptorParameters params = mock(InterceptorParameters.class);
+        FeatureSetting settings = mock(FeatureSetting.class);
+
+        when(settings.getString("csvFile")).thenReturn(Optional.of("src/test/resources/validFormattedExclusions.csv"));
+        when(settings.getString("allowMissingFile")).thenReturn(Optional.of(allowMissingFile));
+        when(params.settings()).thenReturn(Optional.of(settings));
+
+        MutationInterceptor mutationInterceptor = factory.createInterceptor(params);
+
+        verifyNoInteractions(mockLogger);
+        assertThat(mutationInterceptor).isInstanceOf(CsvExclusionFilter.class);
     }
 
     @ParameterizedTest

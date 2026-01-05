@@ -34,6 +34,7 @@ public class CsvExclusionFilterFactory implements MutationInterceptorFactory {
     private static final String CSV_SEPARATOR = ",";
     private static final int MIN_FIELDS = 4;
     private final Logger logger;
+    private boolean allowMissingFile = false;
 
     /**
      * Creates a {@code CsvExclusionFilterFactory} and initializes the logger.
@@ -59,6 +60,11 @@ public class CsvExclusionFilterFactory implements MutationInterceptorFactory {
                 .flatMap(settings -> settings.getString("csvFile"))
                 .orElse("");
 
+        allowMissingFile = params.settings()
+                .flatMap(settings -> settings.getString("allowMissingFile"))
+                .map(Boolean::parseBoolean)
+                .orElse(false);
+
         if (csvPath.isBlank()) {
             throw new IllegalStateException("Missing or empty feature parameter \"csvFile\". Please provide the path "
                     + "to a CSV file, e.g. +FCSV(csvFile[src/main/resources/exclusions.csv]).");
@@ -68,49 +74,59 @@ public class CsvExclusionFilterFactory implements MutationInterceptorFactory {
 
     List<CsvExclusionEntry> getCsvExclusionEntries(final String csvPath) {
         List<CsvExclusionEntry> entries = new ArrayList<>();
+        List<String> lines = readLines(csvPath);
+        int lineNumber = 0;
 
-        try {
-            List<String> lines = Files.readAllLines(Paths.get(csvPath), StandardCharsets.UTF_8);
-            int lineNumber = 0;
-
-            for (String line : lines) {
-                if (line.isBlank() || line.trim().startsWith("#")) {
-                    continue;
-                }
-
-                String[] fields = line.split(CSV_SEPARATOR, -1);
-                if (fields.length > MIN_FIELDS) {
-                    logger.log(Level.WARNING, "Skipping invalid line {0}: it contains too many fields. "
-                            + "A line may contain a maximum of four fields (className, mutator (optional), "
-                            + "startLine (optional), endLine (optional)).", lineNumber);
-                    continue;
-                }
-                fields = Arrays.copyOf(fields, MIN_FIELDS);
-
-                lineNumber++;
-                Optional<String> classNameOptional = normalize(fields[0]);
-                if (classNameOptional.isEmpty()) {
-                    logger.log(Level.WARNING, "Skipping line because class name is missing: {0}", lineNumber);
-                    continue;
-                }
-
-                try {
-                    entries.add(new CsvExclusionEntry(
-                            classNameOptional.get(),
-                            normalize(fields[1]),
-                            tryParseInteger(fields[2]),
-                            tryParseInteger(fields[3])
-                    ));
-                }
-                catch (IllegalArgumentException e) {
-                    logger.log(Level.WARNING, "Skipping invalid line: {0}", lineNumber);
-                }
+        for (String line : lines) {
+            if (line.isBlank() || line.trim().startsWith("#")) {
+                continue;
             }
-            return entries;
+
+            String[] fields = line.split(CSV_SEPARATOR, -1);
+            if (fields.length > MIN_FIELDS) {
+                logger.log(Level.WARNING, "Skipping invalid line {0}: it contains too many fields. "
+                        + "A line may contain a maximum of four fields (className, mutator (optional), "
+                        + "startLine (optional), endLine (optional)).", lineNumber);
+                continue;
+            }
+            fields = Arrays.copyOf(fields, MIN_FIELDS);
+
+            lineNumber++;
+            Optional<String> classNameOptional = normalize(fields[0]);
+            if (classNameOptional.isEmpty()) {
+                logger.log(Level.WARNING, "Skipping line because class name is missing: {0}", lineNumber);
+                continue;
+            }
+
+            try {
+                entries.add(new CsvExclusionEntry(
+                        classNameOptional.get(),
+                        normalize(fields[1]),
+                        tryParseInteger(fields[2]),
+                        tryParseInteger(fields[3])
+                ));
+            }
+            catch (IllegalArgumentException e) {
+                logger.log(Level.WARNING, "Skipping invalid line: {0}", lineNumber);
+            }
+        }
+        return entries;
+    }
+
+    private List<String> readLines(final String csvPath) {
+        try {
+            return Files.readAllLines(Paths.get(csvPath), StandardCharsets.UTF_8);
         }
         catch (IOException e) {
-            throw new IllegalStateException("Failed to read CSV file. Please verify that the path is correct and the "
-                    + "file exists: " + csvPath, e);
+            if (allowMissingFile) {
+                logger.log(Level.INFO, "Mutation exclusion via CSV is enabled and a path is configured, but no"
+                        + "CSV file was found. To use this feature, add a CSV file at the specified location: ", e);
+                return List.of();
+            }
+            else {
+                throw new IllegalStateException("Failed to read CSV file. Please verify that the path is correct and the "
+                        + "file exists: " + csvPath, e);
+            }
         }
     }
 
