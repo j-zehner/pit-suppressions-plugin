@@ -119,7 +119,7 @@ public class CsvExclusionFilterFactory implements MutationInterceptorFactory {
         }
         catch (IOException e) {
             if (allowMissingFile) {
-                logger.log(Level.INFO, "Mutation exclusion via CSV is enabled and a path is configured, but no"
+                logger.log(Level.INFO, "Mutation exclusion via CSV is enabled and a path is configured, but no "
                         + "CSV file was found. To use this feature, add a CSV file at the specified location: ", e);
                 return List.of();
             }
